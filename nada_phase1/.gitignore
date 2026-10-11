@@ -1,0 +1,5 @@
+*.o
+*.log
+*.key
+phase1/test_cles
+phase1/test_maxprime

@@ -1,0 +1,11 @@
+MAX_PRIME=1000       paires=2000  N_max=980051               paires_avec_N>=2^32=0     paires_en_echec=0
+MAX_PRIME=10000      paires=2000  N_max=93881503             paires_avec_N>=2^32=0     paires_en_echec=0
+MAX_PRIME=30000      paires=2000  N_max=871610407            paires_avec_N>=2^32=0     paires_en_echec=0
+MAX_PRIME=60000      paires=2000  N_max=3480925471           paires_avec_N>=2^32=0     paires_en_echec=0
+MAX_PRIME=65536      paires=2000  N_max=4058524373           paires_avec_N>=2^32=0     paires_en_echec=0
+MAX_PRIME=70000      paires=2000  N_max=4676538067           paires_avec_N>=2^32=14    paires_en_echec=14
+MAX_PRIME=80000      paires=2000  N_max=6209139191           paires_avec_N>=2^32=120   paires_en_echec=120
+MAX_PRIME=100000     paires=2000  N_max=9619535129           paires_avec_N>=2^32=362   paires_en_echec=362
+MAX_PRIME=200000     paires=2000  N_max=38660197529          paires_avec_N>=2^32=1330  paires_en_echec=1330
+MAX_PRIME=1000000    paires=2000  N_max=986971496639         paires_avec_N>=2^32=1942  paires_en_echec=1942
+MAX_PRIME=5000000    paires=2000  N_max=24882081958121       paires_avec_N>=2^32=1994  paires_en_echec=1994
