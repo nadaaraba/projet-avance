@@ -2,8 +2,8 @@
 
 #define __BASE64__
 
-#include "rsa_common_header.h"
-#include "phase1"
+#include "../nada_phase1/rsa_common_header.h"
+#include "../nada_phase1/phase1/phase1.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -19,5 +19,7 @@ char *base64_encode(const unsigned char *data,
 int file_to_base64(const char *in, const char *out);
 
 int base64_to_file(const char *in, const char *out);
+
+int test_base64(void);
 
 #endif
