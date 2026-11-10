@@ -97,7 +97,9 @@ Les exécutables sont dans `build/bin` :
 - `test_phase2_loann` : phase 2 (Loann), export et import des clefs publiques, fichiers chiffrés en Base64 ;
 - `test_commandes_nada` : phase 3 (Nada), commandes `show`, `crypt`, `uncrypt` et `savepub`, avec des clefs de contacts ;
 - `test_contacts`, `test_contacts_memoire`, `rejouer_contacts` : phase 3 (Adam), contacts V2, échecs d'allocation simulés et scénario de commandes rejoué ;
-- `test_integration` : intégration des phases 1 à 3, échange de fichiers chiffrés entre deux utilisateurs.
+- `test_integration` : intégration des phases 1 à 3, échange de fichiers chiffrés entre deux utilisateurs ;
+- `test_interprete` : phase 3, table des clefs, commandes V1, sauvegarde chiffrée et boucle de lecture ;
+- `diypg` : **le programme principal** de l'application (voir [Lancer DIYPG](#lancer-diypg)).
 
 Sous Windows, les noms finissent par `.exe`. Le main crée ses fichiers dans le dossier depuis lequel il est lancé : utiliser le lanceur ou `make test` permet de garder tous ces fichiers dans `build/tests`. La commande `clean` enlève uniquement le dossier `build`.
 
@@ -119,6 +121,7 @@ Le workflow GitHub Actions compile et teste sur Windows avec GCC, Linux avec GCC
 - `phase2_loann/` : phase 2, Base64 des fichiers chiffrés, export et import des clefs publiques, envoi par mail.
 - `phase3_nada/` : phase 3, interface commune de l'interprète et commandes `show`, `crypt`, `uncrypt`, `savepub`.
 - `phase3_adam/` : phase 3, contacts V2 et syntaxe `contact/clef`.
+- `phase3_interprete/` : phase 3, table des clefs, interprète (commandes V1, aiguillage, messages, save/load) et `main` de l'application.
 
 Les changements par rapport au dépôt de départ sont notés dans [MODIFICATIONS.md](MODIFICATIONS.md). Les commentaires des parties conservées ont été gardés.
 
@@ -252,12 +255,28 @@ La syntaxe suit le document `interprète.pdf` du sujet. `<keyid>` désigne une c
 | `savepub <keyid> <file>` | Nada | ✅ format `DIYPG_PUBKEY_V3` en Base64 |
 | `listcontacts [<idcontact>] [<nom>]`, `addcontact <id>`, `modifycontact <id>` | Adam | ✅ menus de saisie |
 | `addkeys <id> ou <nom>`, `rmcontact <id>`, `rmkeys <contact/clef>` | Adam | ✅ |
-| `quit`, `listkeys [<keyid>]`, `rmkeys <keyid>`, `newkeys <keyid> <type>` | Loann | en cours |
-| `bin-2b64 <filein> <fileout>`, `b64-2bin <filein> <fileout>` | Loann | en cours |
-| `save [<fileout>]`, `load [<filein>]` (fichier protégé) | Loann | en cours ; la section contacts d'Adam est prête |
-| `main` de l'application (boucle de lecture, découpage, aide) | Loann | en cours |
+| `quit`, `help`, `listkeys [<keyid>]`, `rmkeys <keyid>` | interprète | ✅ `listkeys` donne l'identificateur et le type, pas les clefs |
+| `newkeys <keyid> <type>` | interprète | ✅ clefs GMP (`gen_keys_gmp`), type `crypt` ou `sign` |
+| `bin-2b64 <filein> <fileout>`, `b64-2bin <filein> <fileout>` | interprète | ✅ fonctions Base64 de Loann |
+| `save [<fileout>]`, `load [<filein>]` | interprète | ✅ fichier chiffré avec une clef par défaut, droits 0600 |
+| `main` de l'application (boucle de lecture, découpage, aide) | interprète | ✅ `diypg`, mode interactif ou rejeu d'un script |
 
-`newkeys` doit produire ses clefs avec `gen_keys_gmp` : le chiffrement par blocs refuse les clefs de la phase 1 (N ≤ 2^32).
+### Lancer DIYPG
+
+Après `python3 tester.py all` ou `make`, le programme est `build/bin/diypg` (`diypg.exe` sous Windows) :
+
+```sh
+build/bin/diypg              # mode interactif : invite "diypg> ", help pour l'aide, quit pour sortir
+build/bin/diypg script.txt   # rejoue les commandes du fichier en les recopiant
+```
+
+Une ligne qui commence par `#` est un commentaire. Les menus de `addcontact`, `modifycontact` et `addkeys` lisent leurs réponses sur les lignes suivantes, au clavier ou dans le script. Chaque erreur affiche un message ; le rejeu d'un script se termine par le nombre de commandes en erreur.
+
+### Sauvegarde protégée
+
+`save` écrit la table des clefs puis la section des contacts d'Adam, et **chiffre le tout** par blocs avec une clef par défaut (`interprète.pdf` : « on peut chiffrer ce fichier avec une clef par défaut »). Le fichier par défaut est `diypg.sav`. La clef par défaut est créée au premier `save` dans `diypg_defaut.key`. Les deux fichiers sont réservés à l'utilisateur (droits 0600 sous Unix). Le clair intermédiaire est supprimé aussitôt.
+
+`load` lit tout dans des structures temporaires : une sauvegarde absente, abîmée ou chiffrée avec une autre clef par défaut est refusée, et l'état courant reste intact. Sans `diypg_defaut.key`, une sauvegarde ne peut pas être relue. Cette protection est pédagogique : la clef par défaut est un fichier local, protégé seulement par les droits du système.
 
 ### Interface commune : `phase3_nada/interpreteur.h`
 
@@ -268,24 +287,26 @@ Validée par le groupe. Elle définit :
 - `commande_t` : `int commande(table_clefs_t *table, int argc, char **argv)`, où `argv[0]` est le nom de la commande, comme pour `main` ;
 - les codes de l'interprète.
 
-`table_clefs_provisoire.c` contient une version provisoire de `table_chercher` ; elle sera remplacée par le module de table de Loann.
+`table_chercher`, l'ajout, la suppression et la section binaire de la table sont dans `phase3_interprete/table_clefs.c`. `interprete_message` donne le texte de n'importe quel code.
 
 | Codes | Valeurs | Origine |
 |---|---|---|
 | `RSA_SUCCES` / `CMD_SUCCES` / `CONTACTS_SUCCES` | 0 | succès |
 | `RSA_*` | -1 à -5 | chiffrement et fichiers (`phase1_adam/chiffrement.h`) |
-| `CMD_ERREUR_SYNTAXE`, `_ID_INCONNU`, `_TYPE`, `_PAS_DE_PRIVEE`, `_AMBIGU` | -10 à -14 | interprète (`interpreteur.h`) |
+| `CMD_ERREUR_SYNTAXE`, `_ID_INCONNU`, `_TYPE`, `_PAS_DE_PRIVEE`, `_AMBIGU`, `_DOUBLON`, `_MEMOIRE`, `_FORMAT`, `_INCONNUE` | -10 à -18 | interprète (`interpreteur.h`) |
 | `CONTACTS_*` | -20 à -30 | contacts (`phase3_adam/contacts.h`), texte avec `contacts_message_erreur` |
 | `CONTACTS_COMMANDE_INCONNUE` | 1 | commande à traiter par l'interprète V1 |
 
-Le parseur peut appeler `contacts_executer` d'Adam avec les mêmes `argc` et `argv`, puis les commandes V1 si le retour vaut 1. Détails dans [phase3_adam/README.md](phase3_adam/README.md).
+L'interprète appelle d'abord `contacts_executer` d'Adam avec les mêmes `argc` et `argv`, puis les commandes V1 si le retour vaut 1. Détails dans [phase3_adam/README.md](phase3_adam/README.md).
 
 ### Tests de la phase 3
 
 Ils sont compris dans `python3 tester.py` et `make test` :
 
 - `test_commandes_nada` : aller-retour `crypt`/`uncrypt` sur 0, 1, 3, 4, 5 et 1000 octets et un fichier binaire, clefs de contacts, contact ambigu, mauvais type, clef de la phase 1, fichier absent, mauvaise clef, options de `show` et texte affiché, contenu exact du fichier de `savepub` ;
-- les tests d'Adam : contacts, sauvegarde et chargement, échecs d'allocation, et un scénario de commandes rejoué depuis `phase3_adam/tests/scenario_contacts.txt`.
+- les tests d'Adam : contacts, sauvegarde et chargement, échecs d'allocation, et un scénario de commandes rejoué depuis `phase3_adam/tests/scenario_contacts.txt` ;
+- `test_interprete` : table des clefs (identificateurs, doublons, coupures de la section), commandes V1 et leurs erreurs, sauvegarde chiffrée (aucun identificateur en clair, droits 0600, refus d'un fichier abîmé ou d'une autre clef par défaut sans perte de l'état), boucle de lecture ;
+- **le script de commandes rejouable** `phase3_interprete/tests/scenario.txt` : `diypg` le rejoue et la sortie doit être identique à `scenario_attendu.txt`. Il couvre les cas d'erreur du cahier des charges : identificateur inconnu, mauvais type, fichier absent.
 
 ### Tests d'intégration
 
@@ -297,4 +318,4 @@ Ils sont compris dans `python3 tester.py` et `make test` :
 4. un tiers ne lit pas le message, une pièce jointe abîmée ne redonne jamais le clair, une clef `sign` reçue ne sert pas à chiffrer ;
 5. l'annuaire sauvegardé puis rechargé sert toujours à chiffrer.
 
-En attendant `newkeys` et `addkeys` dans l'interprète, le test crée les clefs avec `gen_keys_gmp` et range les clefs reçues avec l'API d'Adam. Le script de commandes de l'interprète complet sera ajouté avec le `main` de Loann.
+Le test crée les clefs avec `gen_keys_gmp` et range les clefs reçues avec l'API d'Adam, sans passer par les menus de saisie.
