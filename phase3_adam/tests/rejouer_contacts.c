@@ -1,4 +1,4 @@
-/* Teste les commandes V2 avant leur ajout a l'interpreteur de Loann. */
+/* Teste les commandes V2 directement sur l'annuaire, sans l'interprete. */
 #include "../contacts.h"
 #include "../../console_utf8.h"
 

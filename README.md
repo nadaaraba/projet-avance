@@ -62,7 +62,7 @@ python3 tester.py
 
 Le lanceur recompile les programmes pour l'ordinateur utilisé. Il trouve les sources à partir de son propre emplacement, même si le chemin contient des espaces. Le compilateur peut être choisi avec la variable `CC`, par exemple `CC=clang python3 tester.py` sous Unix.
 
-Il lance les tests de clefs de Nada, le main commun de Malek avec les tests d'Adam et de Loann, les cas de régression et les erreurs de fichiers. Le Base64 est comparé à celui de Python, puis à la commande `base64` si elle est installée. Les fichiers d'essai restent dans `build/tests` ; un échec de compilation ou de test renvoie un code non nul.
+Il lance les tests de la phase 1 (clefs, main commun avec les tests de chiffrement et de Base64, cas de régression, erreurs de fichiers), puis ceux des phases 2 et 3, le script de commandes rejoué et les tests d'intégration. Le Base64 est comparé à celui de Python, puis à la commande `base64` si elle est installée. Les fichiers d'essai restent dans `build/tests` ; un échec de compilation ou de test renvoie un code non nul.
 
 Le Makefile commun reste utilisable avec GCC ou Clang, GNU Make et les commandes Unix usuelles :
 
@@ -107,7 +107,7 @@ Sous Windows, les noms finissent par `.exe`. Le main crée ses fichiers dans le 
 
 Les sources, les tests, les Makefiles, les lanceurs, les fichiers Markdown, `.gitignore`, `.gitattributes` et `.github/workflows/tests.yml` font partie du projet. Les compilateurs, exécutables, objets, logs et clefs de test sont ignorés. Chaque membre recompile sur son ordinateur.
 
-Le workflow GitHub Actions compile et teste sur Windows avec GCC, Linux avec GCC et macOS avec Clang. Il vérifie aussi une copie sans configuration locale dans un chemin contenant des espaces, puis relance l'étude MAX_PRIME. Ces contrôles démarreront au prochain push ou à la création d'une pull request. Ils ne publient aucun fichier et n'ont pas de droit d'écriture sur le dépôt.
+Le workflow GitHub Actions compile et teste sur Windows avec GCC, Linux avec GCC et macOS avec Clang. Il vérifie aussi une copie sans configuration locale dans un chemin contenant des espaces, puis relance l'étude MAX_PRIME. Ces contrôles se lancent à chaque push et à chaque pull request. Ils ne publient aucun fichier et n'ont pas de droit d'écriture sur le dépôt.
 
 ## Fichiers conservés
 
@@ -247,19 +247,19 @@ La syntaxe suit le document `interprète.pdf` du sujet. `<keyid>` désigne une c
 
 ### Commandes
 
-| Commande | Module | État |
+| Commande | Module | Remarques |
 |---|---|---|
-| `crypt <fileIn> <fileOut> <keyid>` | Nada | ✅ type `crypt` exigé ; clef de contact acceptée |
-| `uncrypt <fileIn> <fileOut> <keyid>` | Nada | ✅ clef privée exigée (refusé pour un contact) |
-| `show <keyid> ["pub"] ["priv"]` | Nada | ✅ hexadécimal ; sans option, les deux clefs |
-| `savepub <keyid> <file>` | Nada | ✅ format `DIYPG_PUBKEY_V3` en Base64 |
-| `listcontacts [<idcontact>] [<nom>]`, `addcontact <id>`, `modifycontact <id>` | Adam | ✅ menus de saisie |
-| `addkeys <id> ou <nom>`, `rmcontact <id>`, `rmkeys <contact/clef>` | Adam | ✅ |
-| `quit`, `help`, `listkeys [<keyid>]`, `rmkeys <keyid>` | interprète | ✅ `listkeys` donne l'identificateur et le type, pas les clefs |
-| `newkeys <keyid> <type>` | interprète | ✅ clefs GMP (`gen_keys_gmp`), type `crypt` ou `sign` |
-| `bin-2b64 <filein> <fileout>`, `b64-2bin <filein> <fileout>` | interprète | ✅ fonctions Base64 de Loann |
-| `save [<fileout>]`, `load [<filein>]` | interprète | ✅ fichier chiffré avec une clef par défaut, droits 0600 |
-| `main` de l'application (boucle de lecture, découpage, aide) | interprète | ✅ `diypg`, mode interactif ou rejeu d'un script |
+| `crypt <fileIn> <fileOut> <keyid>` | `phase3_nada/` | type `crypt` exigé ; clef de contact acceptée |
+| `uncrypt <fileIn> <fileOut> <keyid>` | `phase3_nada/` | clef privée exigée (refusé pour un contact) |
+| `show <keyid> ["pub"] ["priv"]` | `phase3_nada/` | hexadécimal ; sans option, les deux clefs |
+| `savepub <keyid> <file>` | `phase3_nada/` | format `DIYPG_PUBKEY_V3` en Base64 |
+| `listcontacts [<idcontact>] [<nom>]`, `addcontact <id>`, `modifycontact <id>` | `phase3_adam/` | menus de saisie |
+| `addkeys <id> ou <nom>`, `rmcontact <id>`, `rmkeys <contact/clef>` | `phase3_adam/` | |
+| `quit`, `help`, `listkeys [<keyid>]`, `rmkeys <keyid>` | `phase3_interprete/` | `listkeys` donne l'identificateur et le type, pas les clefs |
+| `newkeys <keyid> <type>` | `phase3_interprete/` | clefs GMP (`gen_keys_gmp`), type `crypt` ou `sign` |
+| `bin-2b64 <filein> <fileout>`, `b64-2bin <filein> <fileout>` | `phase3_interprete/` | fonctions Base64 de la phase 1 |
+| `save [<fileout>]`, `load [<filein>]` | `phase3_interprete/` | fichier chiffré avec une clef par défaut, droits 0600 |
+| `main` de l'application (boucle de lecture, découpage, aide) | `phase3_interprete/` | `diypg`, mode interactif ou rejeu d'un script |
 
 ### Lancer DIYPG
 

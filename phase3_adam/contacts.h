@@ -76,7 +76,7 @@ int contacts_afficher(const annuaire_contacts_t *annuaire, const char *filtre,
                       const char *nom, FILE *sortie);
 
 /*
- * Section binaire a integrer au save/load de Loann. Les flux restent ouverts.
+ * Section binaire a integrer au save/load de l'interprete. Les flux restent ouverts.
  * Charger remplace l'annuaire seulement si toute la section est valide.
  * La protection du fichier complet appartient au save/load de l'interpreteur.
  */

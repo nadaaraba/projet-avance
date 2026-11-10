@@ -34,7 +34,7 @@ avec plusieurs clefs donne CONTACTS_ERREUR_AMBIGU. rmkeys exige contact/clef.
 
 ## Raccordement à l'interpréteur
 
-Après avoir découpé une ligne, Loann peut appeler :
+Après avoir découpé une ligne, l'interprète (`phase3_interprete/interprete.c`) appelle :
 
     contacts_executer(&contacts, argc, (const char *const *)argv, entree, sortie);
 
@@ -76,8 +76,8 @@ correspondant (CMD_ERREUR_SYNTAXE, CMD_ERREUR_ID_INCONNU, CMD_ERREUR_AMBIGU).
 L'interpréteur peut ainsi utiliser la partie publique pour crypt, show et savepub.
 Pour uncrypt, a_priv permet de signaler que la clef privée est absente.
 
-Je propose ces points d'entrée pour raccorder mon module aux structures
-et à l'analyseur de l'interpréteur de Loann.
+Ces points d'entrée raccordent mon module aux structures et à l'analyseur
+de l'interpréteur.
 
 ## Sauvegarde et chargement
 
@@ -99,8 +99,8 @@ invalides, les clefs mal formées, les doublons et les sections tronquées.
 Il construit un annuaire temporaire : l'ancien n'est remplacé qu'en cas de
 succès. Les paramètres de sortie de recherche restent aussi intacts en cas d'erreur.
 
-Cette section n'est pas chiffrée par le module de contacts. Loann doit l'inclure
-dans sa sauvegarde protégée, puis vérifier le vidage et la fermeture du fichier.
+Cette section n'est pas chiffrée par le module de contacts. L'interprète l'inclut
+dans sa sauvegarde protégée, puis vérifie le vidage et la fermeture du fichier.
 Pour que le chargement global soit lui aussi atomique, toutes ses sections
 doivent être lues dans des structures temporaires avant le remplacement final.
 

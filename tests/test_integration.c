@@ -7,7 +7,7 @@
 /// Modules traverses : clefs GMP (Nada, phase 2), fichiers par blocs (Adam, phase 2),
 /// Base64 et clefs publiques (Loann, phases 1 et 2), commandes crypt / uncrypt / savepub (Nada, phase 3),
 /// contacts et leur sauvegarde (Adam, phase 3).
-/// Le script de commandes de l'interprete complet sera ajoute avec le main de Loann.
+/// Le script de commandes de l'interprete complet est rejoue a part (phase3_interprete/tests/scenario.txt).
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -37,7 +37,7 @@ static void utilisateur_init(utilisateur_t *u) {
     u->table = (table_clefs_t){ u->clefs, 0, 4, &u->contacts };
 }
 
-/* Equivalent de "newkeys <id> <type>" (partie de Loann, pas encore poussee) : clefs GMP. */
+/* Equivalent de "newkeys <id> <type>" sans passer par l'interprete : clefs GMP. */
 static int newkeys(utilisateur_t *u, const char *id, type_clef_t type, unsigned bits) {
     entree_clef_t *e = &u->clefs[u->table.nb];
     if (u->table.nb == u->table.capacite || gen_keys_gmp(&e->pub, &e->priv, bits) != RSA_SUCCES) return 0;

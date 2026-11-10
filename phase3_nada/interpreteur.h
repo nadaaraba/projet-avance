@@ -55,11 +55,11 @@ typedef enum {
 
 /*
  * Prototype commun des commandes. argv[0] est le nom de la commande, comme pour main.
- * Le parseur (Loann) decoupe la ligne, choisit la commande et affiche le message d'erreur.
+ * L'interprete (phase3_interprete/) decoupe la ligne, choisit la commande et affiche le message d'erreur.
  */
 typedef int (*commande_t)(table_clefs_t *table, int argc, char **argv);
 
-/* Recherche par identificateur exact. NULL si absent ou si un parametre est NULL. Module de table (Loann). */
+/* Recherche par identificateur exact. NULL si absent ou si un parametre est NULL. Module de table (phase3_interprete/). */
 const entree_clef_t *table_chercher(const table_clefs_t *table, const char *id);
 
 #endif
