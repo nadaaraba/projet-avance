@@ -53,7 +53,6 @@ Les commandes prises en charge sont :
 | addkeys id ou nom | Demande l'identifiant, le type, E et N de la clef |
 | rmcontact id | Supprime le contact et toutes ses clefs |
 | rmkeys contact/clef | Supprime seulement cette clef |
-| show contact/clef [pub] | Affiche la clef publique en hexadécimal |
 
 Dans le menu modifycontact, une valeur vide efface le champ choisi.
 Les modifications ne sont enregistrées qu'au choix 0. Une saisie incomplète
@@ -63,7 +62,7 @@ Le retour 0 indique un succès. Le retour 1, CONTACTS_COMMANDE_INCONNUE, signifi
 que la commande doit être traitée par l'interpréteur V1. Les autres retours
 sont négatifs, de -20 à -30, pour ne pas se confondre avec les codes RSA_*
 (-1 à -5) et CMD_* (-10 à -14) ; contacts_message_erreur donne leur texte.
-Le module ne prend pas en charge save, load, crypt ou les show/rmkeys sans /.
+La commande show est traitée par cmd_show dans phase3_nada.
 
 Pour chiffrer vers un contact, contacts_resoudre avec CONTACT_CRYPT fournit
 la clef publique de contact/clef. Une clef de signature est refusée dans ce cas.

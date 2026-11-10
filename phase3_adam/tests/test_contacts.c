@@ -215,13 +215,11 @@ int main(void)
     VERIFIER(contacts_supprimer(&b, "alice") == CONTACTS_ERREUR_INTROUVABLE);
     VERIFIER(contacts_lire_cle(&b, "alice/signature", &infos_cle) == CONTACTS_ERREUR_INTROUVABLE);
 
-    const char *dora[] = {"dora"}, *ref[] = {"dora/travail"}, *show[] = {"dora/travail", "pub"};
-    const char *prive[] = {"dora/travail", "priv"};
+    const char *dora[] = {"dora"}, *ref[] = {"dora/travail"};
     VERIFIER(commande(&b, "addcontact", 1, dora, "Durand\r\nÉlodie\r\nCollègue\r\n") == 0);
     VERIFIER(strcmp(contacts_trouver(&b, "dora")->prenom, "Élodie") == 0);
     VERIFIER(commande(&b, "addkeys", 1, dora, "travail\ncrypt\n10001\n100040003\n") == 0);
-    VERIFIER(commande(&b, "show", 2, show, "") == 0);
-    VERIFIER(commande(&b, "show", 2, prive, "") == CONTACTS_ERREUR_PRIVEE);
+    VERIFIER(commande(&b, "show", 1, ref, "") == CONTACTS_COMMANDE_INCONNUE);
     VERIFIER(commande(&b, "modifycontact", 1, dora, "3\nChangé\n0\n") == 0);
     size_t taille_affichage = lire("affichage.txt", apres, sizeof apres - 1);
     apres[taille_affichage] = '\0';

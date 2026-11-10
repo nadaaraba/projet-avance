@@ -86,7 +86,7 @@ int contacts_charger(FILE *entree, annuaire_contacts_t *annuaire);
 /*
  * Raccordement a l'interpreteur, apres son decoupage de la ligne. Meme convention que
  * commande_t (interpreteur.h) : argv[0] est le nom de la commande, comme pour main.
- * Gere les commandes V2 et rmkeys/show pour une reference contact/clef.
+ * Gere les commandes de contacts et rmkeys pour une reference contact/clef.
  * Les autres commandes renvoient CONTACTS_COMMANDE_INCONNUE (1).
  * Les menus utilisent les flux fournis, ce qui permet de rejouer un script.
  */

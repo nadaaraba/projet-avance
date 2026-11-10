@@ -8,7 +8,6 @@ crypt
 10001
 100040003
 listcontacts
-show alice/travail pub
 modifycontact alice
 3
 Commentaire mis à jour

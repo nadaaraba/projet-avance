@@ -141,25 +141,8 @@ int contacts_executer(annuaire_contacts_t *annuaire, int argc_total,
     if (strcmp(commande, "rmcontact") == 0)
         return argc == 1 ? contacts_supprimer(annuaire, argv[0]) :
                            CONTACTS_ERREUR_PARAMETRE;
-    if ((strcmp(commande, "rmkeys") == 0 || strcmp(commande, "show") == 0) &&
-        argc > 0 && strchr(argv[0], '/') != NULL) {
-        if (strcmp(commande, "rmkeys") == 0)
-            return argc == 1 ? contacts_supprimer_cle(annuaire, argv[0]) :
-                               CONTACTS_ERREUR_PARAMETRE;
-        contact_cle_t cle;
-        int resultat;
-        if (argc > 3) return CONTACTS_ERREUR_PARAMETRE;
-        for (int i = 1; i < argc; ++i) {
-            if (strcmp(argv[i], "priv") == 0) return CONTACTS_ERREUR_PRIVEE;
-            if (strcmp(argv[i], "pub") != 0) return CONTACTS_ERREUR_PARAMETRE;
-        }
-        resultat = contacts_lire_cle(annuaire, argv[0], &cle);
-        if (resultat != 0) return resultat;
-        if (fprintf(sortie, "%s (%s) : E = 0x%" PRIx64 "  N = 0x%" PRIx64 "\n",
-                    argv[0], cle.type == CONTACT_CRYPT ? "crypt" : "sign",
-                    cle.publique.E, cle.publique.N) < 0 || ferror(sortie))
-            return CONTACTS_ERREUR_FICHIER;
-        return 0;
-    }
+    if (strcmp(commande, "rmkeys") == 0 && argc > 0 && strchr(argv[0], '/') != NULL)
+        return argc == 1 ? contacts_supprimer_cle(annuaire, argv[0]) :
+                           CONTACTS_ERREUR_PARAMETRE;
     return CONTACTS_COMMANDE_INCONNUE;
 }
