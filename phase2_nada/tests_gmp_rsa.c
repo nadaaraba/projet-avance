@@ -46,7 +46,7 @@ static void test_little_endian(void) {
     uint64_t c = 0;
     VERIF(chiffrer_bloc_gmp(b, &id, &c) == RSA_SUCCES);
     VERIF(c == 0x12345678ULL);                          /* octet 0 = poids faible */
-    VERIF(convert4byte2int(b) == 0x12345678u);
+    VERIF(convert_4byte2int(b) == 0x12345678u);
     uint8_t out[BLOCK_SIZE];
     convertInt2uchar(0x12345678u, out);
     VERIF(memcmp(out, b, BLOCK_SIZE) == 0);

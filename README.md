@@ -192,7 +192,7 @@ Un bloc de 4 octets vaut jusqu'à 2^32 - 1, il faut donc N > 2^32. Dans cette zo
 | Fichier | Contenu |
 |---|---|
 | `gmp_rsa.h`, `gmp_rsa.c` | `puissance_mod_n_gmp` (signature du sujet, `mpz_powm`), `gen_keys_gmp` (p et q de 17 à 31 bits, donc 2^32 < N < 2^64), `chiffrer_bloc_gmp`, `dechiffrer_bloc_gmp` |
-| `convert_bytes.h`, `convert_bytes.c` | `convert4byte2int` et `convertInt2uchar`, en **little endian** : `{0x78, 0x56, 0x34, 0x12}` donne `0x12345678` |
+| `convert_bytes.h`, `convert_bytes.c` | `convert_4byte2int` et `convertInt2uchar`, en **little endian** : `{0x78, 0x56, 0x34, 0x12}` donne `0x12345678` |
 | `tests_gmp_rsa.c` | comparaison avec la phase 1 pour N ≤ 2^32, débordement de la phase 1 au-delà, ordre des octets, clefs, aller-retour des blocs, erreurs |
 
 Les fonctions renvoient les codes d'Adam définis dans `phase1_adam/chiffrement.h` : `RSA_SUCCES`, `RSA_ERREUR_PARAMETRE`, `RSA_ERREUR_CLE` et `RSA_ERREUR_CHIFFRE`. Un bloc chiffré est un entier inférieur à N, stocké sur 8 octets (`RSA_BLOC_CHIFFRE_TAILLE`). Le générateur aléatoire de GMP utilisé pour les clefs n'est pas cryptographique.
