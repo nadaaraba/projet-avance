@@ -1,0 +1,61 @@
+> # Script de commandes rejouable (phase 3) : lancer depuis build/tests/interprete
+> #   diypg ../../../phase3_interprete/tests/scenario.txt
+> listkeys
+Aucune clef.
+> newkeys perso crypt
+> newkeys signature sign
+> newkeys perso crypt
+Erreur : Cet identificateur existe deja.
+> newkeys mauvais rsa
+Erreur : Type de clef incorrect pour cette commande (crypt ou sign).
+> listkeys
+perso (crypt)
+signature (sign)
+> listkeys signature
+signature (sign)
+> crypt ../../../phase3_interprete/tests/message.txt message.bin perso
+> bin-2b64 message.bin message.b64
+> b64-2bin message.b64 recu.bin
+> uncrypt recu.bin recu.txt perso
+> crypt ../../../phase3_interprete/tests/message.txt x.bin signature
+Erreur : Type de clef incorrect pour cette commande (crypt ou sign).
+> crypt fichier_absent.txt x.bin perso
+Erreur : Fichier absent, illisible ou impossible a ecrire.
+> uncrypt recu.bin x.txt inconnu
+Erreur : Identificateur inconnu.
+> savepub perso perso.b64
+> addcontact jean
+Nom : Prénom : Commentaire : > addkeys jean
+Identifiant de la clef : Type (crypt/sign) : Exposant public E (hex) : Module N (hex) : > listcontacts
+jean : Jean Dupuis
+  voisin du dessus
+  jean/boulot (crypt)
+> show jean/boulot
+jean/boulot (crypt)
+clef publique : E = 0x10001  N = 0x100040003
+clef privee   : absente
+> show jean priv
+Erreur : Pas de clef privee pour cet identificateur.
+> crypt ../../../phase3_interprete/tests/message.txt pour_jean.bin jean
+> uncrypt pour_jean.bin x.txt jean/boulot
+Erreur : Pas de clef privee pour cet identificateur.
+> save
+> rmkeys perso
+> rmcontact jean
+> listkeys
+signature (sign)
+> load
+> listkeys
+perso (crypt)
+signature (sign)
+> listcontacts jean
+jean : Jean Dupuis
+  voisin du dessus
+  jean/boulot (crypt)
+> uncrypt message.bin recu2.txt perso
+> load sauvegarde_absente.sav
+Erreur : Fichier absent, illisible ou impossible a ecrire.
+> commande_inconnue
+Erreur : Commande inconnue (voir help).
+> quit
+Script termine : 9 commande(s) en erreur.

@@ -1,0 +1,43 @@
+# Script de commandes rejouable (phase 3) : lancer depuis build/tests/interprete
+#   diypg ../../../phase3_interprete/tests/scenario.txt
+listkeys
+newkeys perso crypt
+newkeys signature sign
+newkeys perso crypt
+newkeys mauvais rsa
+listkeys
+listkeys signature
+crypt ../../../phase3_interprete/tests/message.txt message.bin perso
+bin-2b64 message.bin message.b64
+b64-2bin message.b64 recu.bin
+uncrypt recu.bin recu.txt perso
+crypt ../../../phase3_interprete/tests/message.txt x.bin signature
+crypt fichier_absent.txt x.bin perso
+uncrypt recu.bin x.txt inconnu
+savepub perso perso.b64
+addcontact jean
+Dupuis
+Jean
+voisin du dessus
+addkeys jean
+boulot
+crypt
+10001
+100040003
+listcontacts
+show jean/boulot
+show jean priv
+crypt ../../../phase3_interprete/tests/message.txt pour_jean.bin jean
+uncrypt pour_jean.bin x.txt jean/boulot
+save
+rmkeys perso
+rmcontact jean
+listkeys
+load
+listkeys
+listcontacts jean
+uncrypt message.bin recu2.txt perso
+load sauvegarde_absente.sav
+commande_inconnue
+quit
+listkeys

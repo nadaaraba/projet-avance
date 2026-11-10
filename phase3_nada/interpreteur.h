@@ -2,8 +2,7 @@
 /// \author Nada ARABA
 /// \brief Phase 3 : PROPOSITION d'interface commune entre le coeur de l'interpreteur (Loann),
 ///        les contacts V2 (Adam) et les commandes crypt / uncrypt / show / savepub (Nada).
-/// \note A valider par Loann. Quand son module de table existera, ce fichier sera deplace
-///       ou remplace par le sien, et table_clefs_provisoire.c sera supprime.
+/// \note Valide par le groupe. table_chercher est implementee dans phase3_interprete/table_clefs.c.
 #ifndef INTERPRETEUR_H
 #define INTERPRETEUR_H
 
@@ -46,7 +45,11 @@ typedef enum {
     CMD_ERREUR_ID_INCONNU = -11,     /* identificateur absent de la table */
     CMD_ERREUR_TYPE = -12,           /* clef sign donnee a crypt, etc. */
     CMD_ERREUR_PAS_DE_PRIVEE = -13,  /* commande qui a besoin de la clef privee */
-    CMD_ERREUR_AMBIGU = -14          /* contact seul avec plusieurs clefs : preciser contact/clef */
+    CMD_ERREUR_AMBIGU = -14,         /* contact seul avec plusieurs clefs : preciser contact/clef */
+    CMD_ERREUR_DOUBLON = -15,        /* identificateur deja present dans la table */
+    CMD_ERREUR_MEMOIRE = -16,        /* allocation impossible */
+    CMD_ERREUR_FORMAT = -17,         /* fichier de sauvegarde invalide ou clef par defaut differente */
+    CMD_ERREUR_INCONNUE = -18        /* commande inconnue */
 } cmd_resultat_t;
 
 /*
