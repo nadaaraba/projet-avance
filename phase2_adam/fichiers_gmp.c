@@ -13,7 +13,7 @@ static int dechiffrer_entier(uint64_t chiffre, const rsaKey_t *cle, uint64_t *cl
     uint8_t bloc[BLOCK_SIZE];
     int resultat = dechiffrer_bloc_gmp(chiffre, cle, bloc);
     if (resultat == RSA_SUCCES) {
-        *clair = convert4byte2int(bloc);
+        *clair = convert_4byte2int(bloc);
     }
     return resultat;
 }

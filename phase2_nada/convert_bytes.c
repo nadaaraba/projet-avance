@@ -1,7 +1,7 @@
 /// \file convert_bytes.c
 #include "convert_bytes.h"
 
-uint32_t convert4byte2int(const uint8_t *b) {
+uint32_t convert_4byte2int(const uint8_t *b) {
     return (uint32_t)b[0] | ((uint32_t)b[1] << 8) | ((uint32_t)b[2] << 16) | ((uint32_t)b[3] << 24);
 }
 

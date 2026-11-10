@@ -111,7 +111,7 @@ int cle_bloc_valide(const rsaKey_t *cle) {
 int chiffrer_bloc_gmp(const uint8_t bloc[BLOCK_SIZE], const rsaKey_t *cle, uint64_t *chiffre) {
     if (bloc == NULL || cle == NULL || chiffre == NULL) return RSA_ERREUR_PARAMETRE;
     if (!cle_bloc_valide(cle)) return RSA_ERREUR_CLE;
-    uint64_t m = convert4byte2int(bloc);   /* little endian */
+    uint64_t m = convert_4byte2int(bloc);   /* little endian */
     *chiffre = puissance_mod_n_gmp_u64(m, cle->E, cle->N);
     return RSA_SUCCES;
 }
