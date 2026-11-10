@@ -1,8 +1,9 @@
 /// \file interpreteur.h
 /// \author Nada ARABA
-/// \brief Phase 3 : PROPOSITION d'interface commune entre le coeur de l'interpreteur (Loann),
-///        les contacts V2 (Adam) et les commandes crypt / uncrypt / show / savepub (Nada).
-/// \note Valide par le groupe. table_chercher est implementee dans phase3_interprete/table_clefs.c.
+/// \brief Phase 3 : interface commune de l'interprete, validee par le groupe. Elle relie
+///        l'interprete et la table des clefs (phase3_interprete/), les contacts V2 (phase3_adam/)
+///        et les commandes crypt / uncrypt / show / savepub (phase3_nada/commandes_nada.c).
+/// \note table_chercher est implementee dans phase3_interprete/table_clefs.c.
 #ifndef INTERPRETEUR_H
 #define INTERPRETEUR_H
 
