@@ -25,7 +25,8 @@ COMMUN = RSA + ["phase1_adam/chiffrement.c"] + BASE64
 GMP_RSA = ["phase2_nada/gmp_rsa.c", "phase2_nada/convert_bytes.c"]
 FICHIERS_BLOCS = ["phase2_adam/chiffrement_blocs.c", "phase2_adam/fichiers_gmp.c"]
 BASE64_V2 = ["phase2_loann/base64_v2.c"]
-COMMANDES_NADA = ["phase3_nada/table_clefs_provisoire.c", "phase3_nada/commandes_nada.c"]
+COMMANDES_NADA = ["phase3_interprete/table_clefs.c", "phase3_nada/commandes_nada.c"]
+INTERPRETE = ["phase3_interprete/interprete.c"]
 CONTACTS_ADAM = ["phase3_adam/contacts.c", "phase3_adam/contacts_io.c",
                  "phase3_adam/contacts_commandes.c"]
 PROGRAMMES = {
@@ -44,6 +45,11 @@ PROGRAMMES = {
     "test_blocs_io": ["phase2_adam/tests/test_blocs_io.c"],
     "test_phase2_loann": BASE64 + GMP_RSA + FICHIERS_BLOCS +
                         ["phase2_loann/base64_v2.c", "tests/test_phase2_loann.c"],
+    "test_interprete": RSA + GMP_RSA + FICHIERS_BLOCS + BASE64 + BASE64_V2 + COMMANDES_NADA + INTERPRETE
+                       + CONTACTS_ADAM + ["phase3_adam/contacts_interpreteur.c",
+                                          "phase3_interprete/tests/test_interprete.c"],
+    "diypg": RSA + GMP_RSA + FICHIERS_BLOCS + BASE64 + BASE64_V2 + COMMANDES_NADA + INTERPRETE
+             + CONTACTS_ADAM + ["phase3_adam/contacts_interpreteur.c", "phase3_interprete/main_diypg.c"],
     "test_integration": RSA + GMP_RSA + FICHIERS_BLOCS + BASE64 + BASE64_V2 + COMMANDES_NADA
                         + CONTACTS_ADAM + ["phase3_adam/contacts_interpreteur.c",
                                            "tests/test_integration.c"],
@@ -57,7 +63,7 @@ PROGRAMMES = {
 }
 # Programmes des phases 2 et 3 qui ont besoin de la bibliotheque GMP.
 AVEC_GMP = {"test_gmp_rsa", "test_fichiers_blocs", "test_phase2_loann", "test_commandes_nada",
-            "test_integration"}
+            "test_integration", "test_interprete", "diypg"}
 
 
 def configurer_affichage_utf8():
@@ -172,6 +178,22 @@ def reference_base64():
         print("Commande Unix base64 absente ; reference Python verifiee.", flush=True)
 
 
+def rejouer_scenario():
+    """Rejoue le script de commandes de la phase 3 et compare a la sortie attendue."""
+    dossier = ROOT / "phase3_interprete" / "tests"
+    resultat = lancer("diypg", "interprete", "../../../phase3_interprete/tests/scenario.txt",
+                      stdout=subprocess.PIPE)
+    obtenu = resultat.stdout.decode("utf-8").replace("\r\n", "\n")
+    attendu = (dossier / "scenario_attendu.txt").read_text(encoding="utf-8").replace("\r\n", "\n")
+    if obtenu != attendu:
+        import difflib
+        ecarts = difflib.unified_diff(attendu.splitlines(), obtenu.splitlines(),
+                                      "attendu", "obtenu", lineterm="")
+        raise RuntimeError("Le script de la phase 3 ne donne pas la sortie attendue :\n"
+                           + "\n".join(ecarts))
+    print("Phase 3 (interprete) : script rejoue conforme a la sortie attendue.", flush=True)
+
+
 def tester():
     reference_base64()
     lancer("test_cles", "cles", 10000, 20261015)
@@ -193,6 +215,8 @@ def tester():
     verifier_contacts(BUILD / "tests/phase3_adam/contacts_reference.bin")
     print("Phase 3 (Adam) : tous les tests sont OK.", flush=True)
     print("\nTous les tests de la phase 3 sont passes.", flush=True)
+    lancer("test_interprete", "interprete")
+    rejouer_scenario()
     lancer("test_integration", "integration")
     print("\nTous les tests d'integration sont passes.", flush=True)
 
