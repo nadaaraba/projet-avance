@@ -40,6 +40,6 @@ void sha256ofString(BYTE * str,char hashRes[SHA256_BLOCK_SIZE*2 + 1])
 	sha256_final(&ctx, buf); // buf contient le hash de str
   //int charCount =0;
   for(int i=0;i<bufferSize;i++) {
-        sprintf(&hashRes[i*2], "%02x", buf[i]);
+        snprintf(&hashRes[i*2], 3, "%02x", buf[i]); // [projet] snprintf : sprintf est obsolete sur macOS (-Werror)
   }
 }
