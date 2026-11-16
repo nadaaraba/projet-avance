@@ -1,4 +1,4 @@
-# DIYPG — phases 1 à 3
+# DIYPG — phases 1 à 4
 
 Version commune des parties de Nada, Adam, Loann et Malek. Le point de départ est le commit `3772eaba` de la branche `phase1`.
 
@@ -11,7 +11,7 @@ git clone --branch phase3 https://github.com/nadaaraba/projet-avance.git
 cd projet-avance
 ```
 
-Le groupe utilise une branche par phase : `phase1` (version commune de la phase 1), `phase2` et `phase3`. Chaque branche contient aussi les phases précédentes ; `phase3` est la plus complète. Voir [Phase 2 — RSA avec GMP](#phase-2--rsa-avec-gmp) et [Phase 3 — interprète et annuaire de clefs](#phase-3--interprète-et-annuaire-de-clefs).
+Le groupe utilise une branche par phase : `phase1` (version commune de la phase 1), `phase2`, `phase3` et `phase4`. Chaque branche contient aussi les phases précédentes. Voir [Phase 2 — RSA avec GMP](#phase-2--rsa-avec-gmp) et [Phase 3 — interprète et annuaire de clefs](#phase-3--interprète-et-annuaire-de-clefs).
 
 ## Compiler et tester
 
@@ -99,7 +99,8 @@ Les exécutables sont dans `build/bin` :
 - `test_contacts`, `test_contacts_memoire`, `rejouer_contacts` : phase 3 (Adam), contacts V2, échecs d'allocation simulés et scénario de commandes rejoué ;
 - `test_integration` : intégration des phases 1 à 3, échange de fichiers chiffrés entre deux utilisateurs ;
 - `test_interprete` : phase 3, table des clefs, commandes V1, sauvegarde chiffrée et boucle de lecture ;
-- `diypg` : **le programme principal** de l'application (voir [Lancer DIYPG](#lancer-diypg)).
+- `diypg` : **le programme principal** de l'application (voir [Lancer DIYPG](#lancer-diypg)) ;
+- `test_digest` : phase 4, digest SHA-256 de fichiers, requêtes `certify` et `revoke`.
 
 Sous Windows, les noms finissent par `.exe`. Le main crée ses fichiers dans le dossier depuis lequel il est lancé : utiliser le lanceur ou `make test` permet de garder tous ces fichiers dans `build/tests`. La commande `clean` enlève uniquement le dossier `build`.
 
@@ -122,6 +123,7 @@ Le workflow GitHub Actions compile et teste sur Windows avec GCC, Linux avec GCC
 - `phase3_nada/` : phase 3, interface commune de l'interprète et commandes `show`, `crypt`, `uncrypt`, `savepub`.
 - `phase3_adam/` : phase 3, contacts V2 et syntaxe `contact/clef`.
 - `phase3_interprete/` : phase 3, table des clefs, interprète (commandes V1, aiguillage, messages, save/load) et `main` de l'application.
+- `phase4_digest/` : phase 4, SHA-256 fourni par le sujet, digest de fichiers, requêtes `certify` et `revoke`.
 
 Les changements par rapport au dépôt de départ sont notés dans [MODIFICATIONS.md](MODIFICATIONS.md). Les commentaires des parties conservées ont été gardés.
 
@@ -259,6 +261,7 @@ La syntaxe suit le document `interprète.pdf` du sujet. `<keyid>` désigne une c
 | `newkeys <keyid> <type>` | `phase3_interprete/` | clefs GMP (`gen_keys_gmp`), type `crypt` ou `sign` |
 | `bin-2b64 <filein> <fileout>`, `b64-2bin <filein> <fileout>` | `phase3_interprete/` | fonctions Base64 de la phase 1 |
 | `save [<fileout>]`, `load [<filein>]` | `phase3_interprete/` | fichier chiffré avec une clef par défaut, droits 0600 |
+| `certify <keyid>`, `revoke <keyid>` (phase 4) | `phase4_digest/` | requête ajoutée à `diypg_requetes.txt`, voir [Phase 4](#phase-4--signatures-et-hash) |
 | `main` de l'application (boucle de lecture, découpage, aide) | `phase3_interprete/` | `diypg`, mode interactif ou rejeu d'un script |
 
 ### Lancer DIYPG
@@ -319,3 +322,46 @@ Ils sont compris dans `python3 tester.py` et `make test` :
 5. l'annuaire sauvegardé puis rechargé sert toujours à chiffrer.
 
 Le test crée les clefs avec `gen_keys_gmp` et range les clefs reçues avec l'API d'Adam, sans passer par les menus de saisie.
+
+## Phase 4 — signatures et hash
+
+| Élément du sujet | Module | État |
+|---|---|---|
+| digest SHA-256 d'un fichier, en clair ou chiffré | `phase4_digest/digest.c` | ✅ |
+| `certify <id>`, `revoke <id>` : requête à l'autorité de certification (écriture dans un fichier) | `phase4_digest/certification.c` | ✅ |
+| clefs de signature (`newkeys <id> sign`, type vérifié par chaque commande) | `phase3_interprete/` | ✅ |
+| `signtext <filein> <keyid> <fileout>`, `verifysign <filein> <filesign> <keyid>` | | à venir |
+
+### Digest SHA-256 : `phase4_digest/digest.h`
+
+`sha256.c`, `sha256.h`, `sha256_utils.c` et `sha256_utils.h` sont ceux fournis par le sujet, avec deux corrections d'une ligne, signalées par un commentaire `[projet]` :
+
+- `sha256.c` : conversion en `WORD` avant les décalages de 24 bits (décaler un octet ≥ 128 dans un `int` est un comportement indéfini, signalé par UBSan) ;
+- `sha256_utils.c` : `snprintf` au lieu de `sprintf`, déclaré obsolète par macOS (erreur avec `-Werror` hors `-O2`).
+
+```c
+int  digest_fichier(const char *chemin, uint8_t digest[DIGEST_TAILLE]);         /* 32 octets */
+int  digest_fichier_hex(const char *chemin, char hex[DIGEST_HEX_TAILLE]);        /* 64 hex + '\0' */
+void digest_octets(const uint8_t *donnees, size_t taille, uint8_t digest[DIGEST_TAILLE]);
+void digest_vers_hex(const uint8_t digest[DIGEST_TAILLE], char hex[DIGEST_HEX_TAILLE]);
+```
+
+Le fichier est lu en binaire par morceaux de 4096 octets : le digest porte sur les octets exacts, sans limite de taille, pour un fichier clair comme chiffré. Les fonctions renvoient `RSA_SUCCES`, `RSA_ERREUR_PARAMETRE` ou `RSA_ERREUR_FICHIER` et ne modifient la sortie qu'en cas de succès. Le format hexadécimal est celui de `sha256ofString` du sujet. `signtext` et `verifysign` pourront s'appuyer sur `digest_fichier`.
+
+### `certify` et `revoke`
+
+Chaque commande ajoute une ligne au fichier `diypg_requetes.txt`, que la phase 5 lira comme une file de transactions :
+
+```text
+<code> <date> <keyid> <crypt|sign> <E hex> <N hex> <digest>
+NCK 1700000000 perso crypt 10001 100040003 0c41e0e3ab50f62ba86bb6b9b6253f471c1a210aa6d0306e2081d5ffcacdfe7e
+```
+
+- `code` reprend les transactions de la phase 5 : `NCK` / `NSK` pour déclarer une clef de chiffrement / de signature (`certify`), `RCK` / `RSK` pour la révoquer (`revoke`) ;
+- `date` : secondes depuis 1970 (`time_t`) ;
+- `digest` : SHA-256 de la ligne sans ce dernier champ, pour détecter une requête modifiée (`certif_verifier_ligne`) ;
+- seule la clef publique est écrite ; seules les clefs de l'utilisateur peuvent être certifiées ou révoquées.
+
+### Tests de la phase 4
+
+`test_digest` vérifie les valeurs de référence de SHA-256 (dont le million de « a »), l'accord avec `sha256ofString` du sujet, les fichiers de 0 à 20000 octets autour des limites de lecture et de bloc, un fichier chiffré puis déchiffré, les erreurs, les quatre codes de requête, leur contenu exact, le refus d'une requête modifiée, et `certify` / `revoke` depuis l'interprète. Le lanceur Python recalcule ensuite avec `hashlib` le digest d'un fichier binaire et celui de chaque requête. Le script rejouable de la phase 3 contient aussi `certify` et `revoke`.
