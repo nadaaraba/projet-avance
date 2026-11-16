@@ -27,6 +27,7 @@ FICHIERS_BLOCS = ["phase2_adam/chiffrement_blocs.c", "phase2_adam/fichiers_gmp.c
 BASE64_V2 = ["phase2_loann/base64_v2.c"]
 COMMANDES_NADA = ["phase3_interprete/table_clefs.c", "phase3_nada/commandes_nada.c"]
 INTERPRETE = ["phase3_interprete/interprete.c"]
+DIGEST = ["phase4_digest/" + nom + ".c" for nom in ("sha256", "sha256_utils", "digest", "certification")]
 CONTACTS_ADAM = ["phase3_adam/contacts.c", "phase3_adam/contacts_io.c",
                  "phase3_adam/contacts_commandes.c"]
 PROGRAMMES = {
@@ -47,9 +48,13 @@ PROGRAMMES = {
                         ["phase2_loann/base64_v2.c", "tests/test_phase2_loann.c"],
     "test_interprete": RSA + GMP_RSA + FICHIERS_BLOCS + BASE64 + BASE64_V2 + COMMANDES_NADA + INTERPRETE
                        + CONTACTS_ADAM + ["phase3_adam/contacts_interpreteur.c",
-                                          "phase3_interprete/tests/test_interprete.c"],
+                                          "phase3_interprete/tests/test_interprete.c"] + DIGEST,
     "diypg": RSA + GMP_RSA + FICHIERS_BLOCS + BASE64 + BASE64_V2 + COMMANDES_NADA + INTERPRETE
-             + CONTACTS_ADAM + ["phase3_adam/contacts_interpreteur.c", "phase3_interprete/main_diypg.c"],
+             + CONTACTS_ADAM + ["phase3_adam/contacts_interpreteur.c", "phase3_interprete/main_diypg.c"]
+             + DIGEST,
+    "test_digest": RSA + GMP_RSA + FICHIERS_BLOCS + BASE64 + BASE64_V2 + COMMANDES_NADA + INTERPRETE
+                   + CONTACTS_ADAM + ["phase3_adam/contacts_interpreteur.c",
+                                      "phase4_digest/tests/test_digest.c"] + DIGEST,
     "test_integration": RSA + GMP_RSA + FICHIERS_BLOCS + BASE64 + BASE64_V2 + COMMANDES_NADA
                         + CONTACTS_ADAM + ["phase3_adam/contacts_interpreteur.c",
                                            "tests/test_integration.c"],
@@ -63,7 +68,7 @@ PROGRAMMES = {
 }
 # Programmes des phases 2 et 3 qui ont besoin de la bibliotheque GMP.
 AVEC_GMP = {"test_gmp_rsa", "test_fichiers_blocs", "test_phase2_loann", "test_commandes_nada",
-            "test_integration", "test_interprete", "diypg"}
+            "test_integration", "test_interprete", "diypg", "test_digest"}
 
 
 def configurer_affichage_utf8():
@@ -194,6 +199,20 @@ def rejouer_scenario():
     print("Phase 3 (interprete) : script rejoue conforme a la sortie attendue.", flush=True)
 
 
+def verifier_digest(dossier):
+    """Recalcule avec hashlib (independant du C) le digest d'un fichier et ceux des requetes."""
+    import hashlib
+    attendu = hashlib.sha256((dossier / "digest_binaire.bin").read_bytes()).hexdigest()
+    if (dossier / "digest_binaire.txt").read_text(encoding="ascii") != attendu:
+        raise RuntimeError("Le digest SHA-256 du fichier ne correspond pas a hashlib.")
+    lignes = (dossier / "requetes_test.txt").read_text(encoding="utf-8").splitlines()
+    for ligne in lignes:
+        tete, digest = ligne.rsplit(" ", 1)
+        if hashlib.sha256(tete.encode("utf-8")).hexdigest() != digest:
+            raise RuntimeError("Digest de requete incorrect : " + ligne)
+    print("Digest SHA-256 : fichier et %d requetes conformes a hashlib." % len(lignes), flush=True)
+
+
 def tester():
     reference_base64()
     lancer("test_cles", "cles", 10000, 20261015)
@@ -217,6 +236,9 @@ def tester():
     print("\nTous les tests de la phase 3 sont passes.", flush=True)
     lancer("test_interprete", "interprete")
     rejouer_scenario()
+    lancer("test_digest", "phase4")
+    verifier_digest(BUILD / "tests" / "phase4")
+    print("\nTous les tests de la phase 4 sont passes.", flush=True)
     lancer("test_integration", "integration")
     print("\nTous les tests d'integration sont passes.", flush=True)
 

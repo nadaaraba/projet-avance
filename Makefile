@@ -29,12 +29,14 @@ FICHIERS_BLOCS = phase2_adam/chiffrement_blocs.c phase2_adam/fichiers_gmp.c
 BASE64_V2 = phase2_loann/base64_v2.c
 COMMANDES_NADA = phase3_interprete/table_clefs.c phase3_nada/commandes_nada.c
 INTERPRETE = phase3_interprete/interprete.c
+DIGEST = phase4_digest/sha256.c phase4_digest/sha256_utils.c phase4_digest/digest.c phase4_digest/certification.c
 CONTACTS_ADAM = phase3_adam/contacts.c phase3_adam/contacts_io.c phase3_adam/contacts_commandes.c
 TESTS_CONTACTS = $(BIN)/test_contacts$(EXE) $(BIN)/test_contacts_memoire$(EXE) \
                  $(BIN)/rejouer_contacts$(EXE)
 TESTS_GMP = $(BIN)/test_gmp_rsa$(EXE) $(BIN)/test_fichiers_blocs$(EXE) \
             $(BIN)/test_phase2_loann$(EXE) $(BIN)/test_commandes_nada$(EXE) \
-            $(BIN)/test_integration$(EXE) $(BIN)/test_interprete$(EXE) $(BIN)/diypg$(EXE)
+            $(BIN)/test_integration$(EXE) $(BIN)/test_interprete$(EXE) $(BIN)/diypg$(EXE) \
+            $(BIN)/test_digest$(EXE)
 COMMUN = $(RSA) $(CHIFFREMENT) $(BASE64)
 SOURCES = $(COMMUN) $(TESTS_MODULES) phase1_malek/phase1.c phase1_malek/main_phase1.c \
           phase1_nada/phase1/test_cles.c phase1_nada/phase1/test_maxprime.c \
@@ -45,7 +47,7 @@ SOURCES = $(COMMUN) $(TESTS_MODULES) phase1_malek/phase1.c phase1_malek/main_pha
           $(CONTACTS_ADAM) phase3_adam/contacts_interpreteur.c phase3_adam/tests/test_contacts.c \
           phase3_adam/tests/test_contacts_memoire.c phase3_adam/tests/rejouer_contacts.c \
           tests/test_integration.c $(INTERPRETE) phase3_interprete/tests/test_interprete.c \
-          phase3_interprete/main_diypg.c
+          phase3_interprete/main_diypg.c $(DIGEST) phase4_digest/tests/test_digest.c
 
 all: $(BIN)/test_phase1$(EXE) $(BIN)/test_cles$(EXE) $(BIN)/test_maxprime$(EXE) \
      $(BIN)/test_base64$(EXE) $(BIN)/test_regressions$(EXE) $(BIN)/test_io_errors$(EXE) \
@@ -88,12 +90,16 @@ $(BIN)/test_integration$(EXE): $(patsubst %.c,$(OBJ)/%.o,$(RSA) $(GMP_RSA) $(FIC
                                $(COMMANDES_NADA) $(CONTACTS_ADAM) phase3_adam/contacts_interpreteur.c tests/test_integration.c)
 $(OBJ)/tests/test_integration.o: CPPFLAGS += $(GMP_CPPFLAGS)
 
-# Interprete complet (table, V1, V2, save/load) et programme principal diypg.
+# Interprete complet (table, V1, V2, save/load, certify/revoke) et programme principal diypg.
 DIYPG_OBJ = $(patsubst %.c,$(OBJ)/%.o,$(RSA) $(GMP_RSA) $(FICHIERS_BLOCS) $(BASE64) $(BASE64_V2) \
-            $(COMMANDES_NADA) $(INTERPRETE) $(CONTACTS_ADAM) phase3_adam/contacts_interpreteur.c)
+            $(COMMANDES_NADA) $(INTERPRETE) $(CONTACTS_ADAM) phase3_adam/contacts_interpreteur.c $(DIGEST))
 $(BIN)/test_interprete$(EXE): $(DIYPG_OBJ) $(OBJ)/phase3_interprete/tests/test_interprete.o
 $(BIN)/diypg$(EXE): $(DIYPG_OBJ) $(OBJ)/phase3_interprete/main_diypg.o
 $(OBJ)/phase3_interprete/%.o: CPPFLAGS += $(GMP_CPPFLAGS)
+
+# Phase 4 : digest SHA-256 de fichiers, certify / revoke.
+$(BIN)/test_digest$(EXE): $(DIYPG_OBJ) $(OBJ)/phase4_digest/tests/test_digest.o
+$(OBJ)/phase4_digest/tests/%.o: CPPFLAGS += $(GMP_CPPFLAGS)
 
 $(BIN)/test_contacts$(EXE): $(patsubst %.c,$(OBJ)/%.o,$(CONTACTS_ADAM) phase3_adam/contacts_interpreteur.c phase3_adam/tests/test_contacts.c)
 
@@ -132,6 +138,8 @@ test: all test-reference
 	cd build/tests/interprete && ../../bin/diypg$(EXE) ../../../phase3_interprete/tests/scenario.txt > scenario_sortie.txt
 	cd build/tests/interprete && diff ../../../phase3_interprete/tests/scenario_attendu.txt scenario_sortie.txt
 	@echo "Phase 3 (interprete) : script rejoue conforme a la sortie attendue."
+	@mkdir -p build/tests/phase4
+	cd build/tests/phase4 && ../../bin/test_digest$(EXE)
 	@mkdir -p build/tests/integration
 	cd build/tests/integration && ../../bin/test_integration$(EXE)
 

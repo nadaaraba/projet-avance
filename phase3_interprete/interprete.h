@@ -5,8 +5,8 @@
 /// Commandes : quit, help, listkeys [<keyid>], rmkeys <keyid>, newkeys <keyid> <type>,
 /// crypt / uncrypt <fileIn> <fileOut> <keyid>, bin-2b64 / b64-2bin <filein> <fileout>,
 /// save [<fileout>], savepub <keyid> <file>, load [<filein>], show <keyid> ["pub"] ["priv"],
-/// et les commandes de contacts d'Adam (listcontacts, addcontact, modifycontact, addkeys,
-/// rmcontact, rmkeys contact/clef).
+/// les commandes de contacts d'Adam (listcontacts, addcontact, modifycontact, addkeys,
+/// rmcontact, rmkeys contact/clef), et en phase 4 certify <id> et revoke <id>.
 #ifndef INTERPRETE_H
 #define INTERPRETE_H
 
@@ -17,6 +17,7 @@
 #define INTERPRETE_QUITTER 2                 /* retour de "quit" : fin de la boucle */
 #define INTERPRETE_SAUVEGARDE "diypg.sav"    /* fichier par defaut de save / load */
 #define INTERPRETE_CLEF_DEFAUT "diypg_defaut.key"
+#define INTERPRETE_REQUETES "diypg_requetes.txt"  /* requetes de certify / revoke (phase 4) */
 #define INTERPRETE_ARGS_MAX 16
 
 typedef struct {
@@ -24,6 +25,7 @@ typedef struct {
     annuaire_contacts_t contacts;
     const char *sauvegarde;            /* fichier par defaut de save / load */
     const char *clef_defaut;           /* clef par defaut qui chiffre la sauvegarde */
+    const char *requetes;              /* fichier des requetes a l'autorite de certification */
 } interprete_t;
 
 void interprete_initialiser(interprete_t *it);

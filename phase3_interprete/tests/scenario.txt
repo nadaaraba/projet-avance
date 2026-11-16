@@ -37,6 +37,10 @@ load
 listkeys
 listcontacts jean
 uncrypt message.bin recu2.txt perso
+certify perso
+revoke signature
+certify inconnu
+certify jean/boulot
 load sauvegarde_absente.sav
 commande_inconnue
 quit

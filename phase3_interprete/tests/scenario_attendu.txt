@@ -53,9 +53,17 @@ jean : Jean Dupuis
   voisin du dessus
   jean/boulot (crypt)
 > uncrypt message.bin recu2.txt perso
+> certify perso
+Requete NCK pour perso ajoutee a diypg_requetes.txt
+> revoke signature
+Requete RSK pour signature ajoutee a diypg_requetes.txt
+> certify inconnu
+Erreur : Identificateur inconnu.
+> certify jean/boulot
+Erreur : Identificateur inconnu.
 > load sauvegarde_absente.sav
 Erreur : Fichier absent, illisible ou impossible a ecrire.
 > commande_inconnue
 Erreur : Commande inconnue (voir help).
 > quit
-Script termine : 9 commande(s) en erreur.
+Script termine : 11 commande(s) en erreur.

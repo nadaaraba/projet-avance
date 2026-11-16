@@ -10,6 +10,7 @@
 #include "../phase2_nada/gmp_rsa.h"          /* gen_keys_gmp */
 #include "../phase2_adam/chiffrement_blocs.h"   /* chiffrement de la sauvegarde */
 #include "../phase3_nada/commandes_nada.h"   /* crypt, uncrypt, show, savepub */
+#include "../phase4_digest/certification.h"  /* certify, revoke (phase 4) */
 
 static const uint8_t signature_sauvegarde[8] = {'D', 'Y', 'S', 'A', 'V', 'E', '0', '1'};
 
@@ -19,6 +20,7 @@ void interprete_initialiser(interprete_t *it) {
     table_initialiser(&it->table, &it->contacts);
     it->sauvegarde = INTERPRETE_SAUVEGARDE;
     it->clef_defaut = INTERPRETE_CLEF_DEFAUT;
+    it->requetes = INTERPRETE_REQUETES;
 }
 
 void interprete_liberer(interprete_t *it) {
@@ -182,6 +184,17 @@ static int cmd_save_load(interprete_t *it, int argc, char **argv, int sauvegarde
     return sauvegarde ? sauver(it, chemin) : charger(it, chemin);
 }
 
+/* ---------- certify / revoke : requete a l'autorite de certification (phase 4) ---------- */
+
+static int cmd_certification(interprete_t *it, int argc, char **argv, FILE *sortie, certif_action_t action) {
+    const char *code = NULL;
+    if (argc != 2) return CMD_ERREUR_SYNTAXE;
+    int res = certif_requete(&it->table, argv[1], action, it->requetes, time(NULL), &code);
+    if (res == CMD_SUCCES)
+        fprintf(sortie, "Requete %s pour %s ajoutee a %s\n", code, argv[1], it->requetes);
+    return res;
+}
+
 static void aide(FILE *sortie) {
     fputs("Commandes :\n"
           "  quit                                  quitter\n"
@@ -200,6 +213,7 @@ static void aide(FILE *sortie) {
           "  listcontacts [<idcontact>] [<nom>]    contacts et leurs clefs\n"
           "  addcontact <id> | modifycontact <id> | rmcontact <id>\n"
           "  addkeys <id ou nom>                   ajouter une clef publique a un contact\n"
+          "  certify <keyid> | revoke <keyid>      requete de certification / revocation d'une clef\n"
           "<keyid> : clef de l'utilisateur, contact/clef, ou contact s'il n'a qu'une clef.\n", sortie);
 }
 
@@ -225,6 +239,8 @@ int interprete_executer(interprete_t *it, int argc, char **argv, FILE *entree, F
     if (strcmp(nom, "b64-2bin") == 0) return cmd_base64(argc, argv, 0);
     if (strcmp(nom, "save") == 0) return cmd_save_load(it, argc, argv, 1);
     if (strcmp(nom, "load") == 0) return cmd_save_load(it, argc, argv, 0);
+    if (strcmp(nom, "certify") == 0) return cmd_certification(it, argc, argv, sortie, CERTIF_DECLARATION);
+    if (strcmp(nom, "revoke") == 0) return cmd_certification(it, argc, argv, sortie, CERTIF_REVOCATION);
 
     static const struct { const char *nom; commande_t commande; } commandes[] = {
         { "crypt", cmd_crypt }, { "uncrypt", cmd_uncrypt }, { "show", cmd_show }, { "savepub", cmd_savepub }
