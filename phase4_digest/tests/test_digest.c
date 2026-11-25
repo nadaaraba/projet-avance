@@ -2,6 +2,8 @@
 /// \author Nada ARABA
 /// \brief Tests de la phase 4 : digest SHA-256 de fichiers (clairs et chiffres), requetes certify / revoke.
 ///        Laisse digest_binaire.bin / .txt et requetes_test.txt pour une verification independante (Python).
+///        Pas de console_utf8.h ici : windows.h et sha256_utils.h definissent chacun un type WORD.
+///        Les messages de ce test sont donc sans accents.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,7 +16,6 @@
 #include "../../phase2_nada/gmp_rsa.h"
 #include "../../phase2_adam/chiffrement_blocs.h"
 #include "../../phase3_interprete/interprete.h"
-#include "../../console_utf8.h"
 
 static unsigned controles = 0, echecs = 0;
 #define VERIF(cond) do { ++controles; \
@@ -188,7 +189,6 @@ static void test_interprete(void) {
 }
 
 int main(void) {
-    initialiser_console_utf8();
     init_log();
     test_vecteurs();
     test_fichiers();

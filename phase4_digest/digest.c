@@ -3,7 +3,11 @@
 #include <stdio.h>
 #include <string.h>
 #include "digest.h"
+#include "sha256.h"
 #include "../phase1_adam/chiffrement.h"   /* codes RSA_* */
+
+_Static_assert(DIGEST_TAILLE == SHA256_BLOCK_SIZE, "DIGEST_TAILLE doit valoir SHA256_BLOCK_SIZE");
+_Static_assert(DIGEST_HEX_TAILLE == 2 * SHA256_BLOCK_SIZE + 1, "DIGEST_HEX_TAILLE : 64 hexadecimaux + 1");
 
 void digest_octets(const uint8_t *donnees, size_t taille, uint8_t digest[DIGEST_TAILLE]) {
     SHA256_CTX ctx;

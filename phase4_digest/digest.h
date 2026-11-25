@@ -5,11 +5,13 @@
 #ifndef DIGEST_H
 #define DIGEST_H
 
+#include <stddef.h>
 #include <stdint.h>
-#include "sha256.h"
 
-#define DIGEST_TAILLE SHA256_BLOCK_SIZE              /* 32 octets */
-#define DIGEST_HEX_TAILLE (2 * SHA256_BLOCK_SIZE + 1) /* 64 caracteres hexadecimaux + '\0' */
+/* sha256.h n'est pas inclus ici : son type WORD entre en conflit avec celui de windows.h
+ * (console_utf8.h). Les tailles sont verifiees a la compilation dans digest.c. */
+#define DIGEST_TAILLE 32u            /* SHA256_BLOCK_SIZE */
+#define DIGEST_HEX_TAILLE 65u        /* 64 caracteres hexadecimaux + '\0' */
 
 /*
  * Digest SHA-256 du contenu exact du fichier (lu en binaire, par morceaux : pas de limite de taille).
